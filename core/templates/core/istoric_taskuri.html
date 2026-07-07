@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Istoric Intervenții</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1d20">
+
+<meta name="apple-mobile-web-app-title" content="Task Manager">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+</head>
+<body class="bg-light">
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-12 d-md-none d-flex align-items-center bg-white p-3 border-bottom shadow-sm sticky-top">
+    <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#meniuLateral" aria-controls="meniuLateral">
+        <span style="font-size: 1.3rem; line-height: 1;">☰</span>
+    </button>
+    <h5 class="mb-0 fw-bold text-secondary">Task Manager</h5>
+</div>
+
+<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar offcanvas-md offcanvas-start border-end" tabindex="-1" id="meniuLateral" aria-labelledby="meniuLateralLabel" style="min-height: 100vh;">
+    
+    <div class="offcanvas-header d-md-none border-bottom">
+        <h5 class="offcanvas-title fw-bold text-secondary" id="meniuLateralLabel">Panou Control</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#meniuLateral" aria-label="Închide"></button>
+    </div>
+    
+    <div class="offcanvas-body d-flex flex-column p-0 p-md-3">
+        <h5 class="text-center mb-4 mt-3 font-weight-bold text-secondary d-none d-md-block">Panou Control</h5>
+        <ul class="nav flex-column w-100 p-3 p-md-0">
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'dashboard' %}">🏠 Dashboard</a></li>
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_taskuri' %}">📋 Taskuri</a></li>
+            
+            {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'istoric_taskuri' %}">📊 Istoric & Rapoarte</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_reminders' %}">⏰ Remindere</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'vizualizare_audit' %}">📝 Audit Log</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_utilizatori' %}">👥 Echipa Mea</a></li>
+            {% endif %}
+            
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_mesaje' %}">✉️ Mesaje</a></li>
+            <li class="nav-item mt-2"><a class="nav-link text-info fw-bold" href="{% url 'profil' %}">👤 Profilul Meu</a></li>
+        </ul>
+    </div>
+</nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 py-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                <h2 class="h3 m-0">📊 Istoric Intervenții</h2>
+                <a href="{% url 'export_raport_excel' %}?locatie={{ locatie_selectata|default_if_none:'' }}&angajat={{ angajat_selectat|default_if_none:'' }}&data_start={{ data_start|default_if_none:'' }}&data_end={{ data_end|default_if_none:'' }}" 
+                   class="btn btn-success fw-bold shadow-sm">
+                    📥 Export Excel
+                </a>
+            </div>
+            
+            <div class="card shadow-sm border-0 mb-4 p-4 bg-white">
+                <form method="GET" class="row g-3 align-items-end mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">📍 Locație</label>
+                        <select name="locatie" class="form-select select2-activat">
+                            <option value="">-- Toate locațiile --</option>
+                            {% for loc in locatii %}
+                                <option value="{{ loc }}" {% if loc == locatie_selectata %}selected{% endif %}>{{ loc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">👥 Angajat</label>
+                        <select name="angajat" class="form-select select2-activat">
+                            <option value="">-- Toată echipa --</option>
+                            {% for angajat in angajati %}
+                                <option value="{{ angajat.id }}" {% if angajat.id|stringformat:"s" == angajat_selectat|stringformat:"s" %}selected{% endif %}>{{ angajat.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">📅 De la</label>
+                        <input type="date" name="data_start" class="form-control" value="{{ data_start|default_if_none:'' }}">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">📅 Până la</label>
+                        <input type="date" name="data_end" class="form-control" value="{{ data_end|default_if_none:'' }}">
+                    </div>
+
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill fw-bold shadow-sm">Filtrează</button>
+                        <a href="{% url 'istoric_taskuri' %}" class="btn btn-light shadow-sm text-secondary" title="Șterge filtrele">✖</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <ul class="list-group list-group-flush">
+                    {% for task in taskuri %}
+                        <li class="list-group-item py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1 text-dark">{{ task.titlu }} <span class="badge bg-secondary ms-2">{{ task.locatie }}</span></h5>
+                                    {% if task.actiune %}
+                                        <p class="text-primary small mb-1">🛠️ Acțiuni: {{ task.actiune }}</p>
+                                    {% endif %}
+                                    <small class="text-muted d-block">Echipă intervenție: <b>
+                                        {% for angajat in task.atribuit_catre.all %}
+                                            {{ angajat.username }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </b></small>
+                                </div>
+                                <div class="text-end text-success" style="font-size: 0.9em;">
+                                    🟢 Început: {{ task.data_inceperii|date:"d M Y, H:i" }}<br>
+                                    🔴 Finalizat: {{ task.data_finalizarii|date:"d M Y, H:i" }}
+                                </div>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item py-5 text-center text-muted">
+                            Nu am găsit nicio intervenție finalizată pentru filtrele selectate.
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% if taskuri.has_other_pages %}
+            <nav aria-label="Paginare istoric" class="mt-4 mb-5">
+                <ul class="pagination justify-content-center">
+                    
+                    {% if taskuri.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link shadow-sm text-primary fw-bold" href="?page={{ taskuri.previous_page_number }}&locatie={{ locatie_selectata|default_if_none:'' }}&angajat={{ angajat_selectat|default_if_none:'' }}&data_start={{ data_start|default_if_none:'' }}&data_end={{ data_end|default_if_none:'' }}">
+                                &laquo; Pagina Anterioară
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link text-muted">&laquo; Pagina Anterioară</span>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link shadow-sm fw-bold">
+                            Pagina {{ taskuri.number }} din {{ taskuri.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if taskuri.has_next %}
+                        <li class="page-item">
+                            <a class="page-link shadow-sm text-primary fw-bold" href="?page={{ taskuri.next_page_number }}&locatie={{ locatie_selectata|default_if_none:'' }}&angajat={{ angajat_selectat|default_if_none:'' }}&data_start={{ data_start|default_if_none:'' }}&data_end={{ data_end|default_if_none:'' }}">
+                                Pagina Următoare &raquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link text-muted">Pagina Următoare &raquo;</span>
+                        </li>
+                    {% endif %}
+
+                </ul>
+            </nav>
+            {% endif %}
+
+        </main>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2-activat').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

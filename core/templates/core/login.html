@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logare - Sistem Management</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1d20">
+
+<meta name="apple-mobile-web-app-title" content="Task Manager">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
+
+    <div class="card shadow-lg border-0" style="width: 100%; max-width: 400px;">
+        <div class="card-body p-5">
+            <h3 class="text-center mb-4 text-primary">Autentificare</h3>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nume Utilizator </label>
+                    <input type="text" name="username" class="form-control" required autofocus>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Parolă</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">Intră în cont</button>
+            </form>
+
+            {% if form.errors %}
+                <div class="alert alert-danger mt-3 text-center" role="alert">
+                    Date de logare incorecte.
+                </div>
+            {% endif %}
+        {% if form.errors %}
+                <div class="alert alert-danger mt-3 text-center" role="alert">
+                    Username sau parolă incorectă.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

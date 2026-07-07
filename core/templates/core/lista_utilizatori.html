@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echipă și Utilizatori</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1d20">
+
+<meta name="apple-mobile-web-app-title" content="Task Manager">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #f8f9fa; border-right: 1px solid #dee2e6; }
+        .nav-link { color: #495057; font-weight: 500; padding: 12px 20px; }
+        .nav-link:hover { background-color: #e9ecef; color: #212529; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+       <div class="col-12 d-md-none d-flex align-items-center bg-white p-3 border-bottom shadow-sm sticky-top">
+    <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#meniuLateral" aria-controls="meniuLateral">
+        <span style="font-size: 1.3rem; line-height: 1;">☰</span>
+    </button>
+    <h5 class="mb-0 fw-bold text-secondary">Task Manager</h5>
+</div>
+
+<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar offcanvas-md offcanvas-start border-end" tabindex="-1" id="meniuLateral" aria-labelledby="meniuLateralLabel" style="min-height: 100vh;">
+    
+    <div class="offcanvas-header d-md-none border-bottom">
+        <h5 class="offcanvas-title fw-bold text-secondary" id="meniuLateralLabel">Panou Control</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#meniuLateral" aria-label="Închide"></button>
+    </div>
+    
+    <div class="offcanvas-body d-flex flex-column p-0 p-md-3">
+        <h5 class="text-center mb-4 mt-3 font-weight-bold text-secondary d-none d-md-block">Panou Control</h5>
+        <ul class="nav flex-column w-100 p-3 p-md-0">
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'dashboard' %}">🏠 Dashboard</a></li>
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_taskuri' %}">📋 Taskuri</a></li>
+            
+            {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'istoric_taskuri' %}">📊 Istoric & Rapoarte</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_reminders' %}">⏰ Remindere</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'vizualizare_audit' %}">📝 Audit Log</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_utilizatori' %}">👥 Echipa Mea</a></li>
+            {% endif %}
+            
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_mesaje' %}">✉️ Mesaje</a></li>
+            <li class="nav-item mt-2"><a class="nav-link text-info fw-bold" href="{% url 'profil' %}">👤 Profilul Meu</a></li>
+        </ul>
+    </div>
+</nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 py-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+                <h2 class="h3">Gestionare Echipă</h2>
+                <a href="{% url 'adauga_utilizator' %}" class="btn btn-primary">+ Cont Nou</a>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4 py-3">Username</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Rol</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-end">Acțiuni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for utilizator in utilizatori %}
+                            <tr>
+                                <td class="px-4 py-3 fw-bold">{{ utilizator.username }}</td>
+                                <td class="px-4 py-3">{{ utilizator.email }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="badge bg-info text-dark">{{ utilizator.get_role_display }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if utilizator.is_active %}
+                                        <span class="badge bg-success">Activ</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactiv</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-end">
+                                    <a href="{% url 'reseteaza_parola' utilizator.id %}" class="btn btn-sm btn-outline-warning me-1" onclick="return confirm('Sigur vrei să generezi o parolă nouă pentru {{ utilizator.username }}? Va fi trimisă pe emailul lui.');">🔑 Resetează Parola</a>
+                                    <a href="{% url 'sterge_utilizator' utilizator.id %}" 
+   class="btn btn-sm btn-danger ms-2" 
+   onclick="return confirm('Ești sigur că vrei să ștergi acest utilizator? Toate task-urile lui vor fi afectate!')">
+   🗑️ Șterge
+</a>
+                                    <button class="btn btn-sm btn-outline-danger">🚫 Dezactivează</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

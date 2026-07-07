@@ -1,0 +1,65 @@
+{% extends 'core/dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">🔔 Remindere</h2>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Adaugă un memento nou</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Titlu</label>
+                        {{ form.titlu }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Data și Ora</label>
+                        {{ form.data_reminder }}
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Detalii</label>
+                        {{ form.detalii }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvează Memento</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Lista mea de remindere</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Titlu</th>
+                            <th>Data</th>
+                            <th>Detalii</th>
+                            <th class="text-center">Acțiune</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reminders %}
+                        <tr>
+                            <td class="fw-bold">{{ r.titlu }}</td>
+                            <td>{{ r.data_reminder|date:"d M Y, H:i" }}</td>
+                            <td>{{ r.detalii }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'sterge_reminder' r.id %}" class="btn btn-outline-danger btn-sm">Șterge</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">Nu ai niciun memento setat.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creează Task Nou</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1d20">
+
+<meta name="apple-mobile-web-app-title" content="Task Manager">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #f8f9fa; border-right: 1px solid #dee2e6; }
+        .nav-link { color: #495057; font-weight: 500; padding: 12px 20px; }
+        .nav-link:hover { background-color: #e9ecef; color: #212529; border-radius: 5px; }
+        .logout-btn { color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+       <div class="col-12 d-md-none d-flex align-items-center bg-white p-3 border-bottom shadow-sm sticky-top">
+    <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#meniuLateral" aria-controls="meniuLateral">
+        <span style="font-size: 1.3rem; line-height: 1;">☰</span>
+    </button>
+    <h5 class="mb-0 fw-bold text-secondary">Task Manager</h5>
+</div>
+
+<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar offcanvas-md offcanvas-start border-end" tabindex="-1" id="meniuLateral" aria-labelledby="meniuLateralLabel" style="min-height: 100vh;">
+    
+    <div class="offcanvas-header d-md-none border-bottom">
+        <h5 class="offcanvas-title fw-bold text-secondary" id="meniuLateralLabel">Panou Control</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#meniuLateral" aria-label="Închide"></button>
+    </div>
+    
+    <div class="offcanvas-body d-flex flex-column p-0 p-md-3">
+        <h5 class="text-center mb-4 mt-3 font-weight-bold text-secondary d-none d-md-block">Panou Control</h5>
+        <ul class="nav flex-column w-100 p-3 p-md-0">
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'dashboard' %}">🏠 Dashboard</a></li>
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_taskuri' %}">📋 Taskuri</a></li>
+            
+            {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'istoric_taskuri' %}">📊 Istoric & Rapoarte</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_reminders' %}">⏰ Remindere</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'vizualizare_audit' %}">📝 Audit Log</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_utilizatori' %}">👥 Echipa Mea</a></li>
+            {% endif %}
+            
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_mesaje' %}">✉️ Mesaje</a></li>
+            <li class="nav-item mt-2"><a class="nav-link text-info fw-bold" href="{% url 'profil' %}">👤 Profilul Meu</a></li>
+        </ul>
+    </div>
+</nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 py-4">
+            <div class="border-bottom pb-2 mb-4">
+                <h2 class="h3">Atribuie un Task Nou</h2>
+                <p class="text-muted">Completează noile detalii de locație și acțiune.</p>
+            </div>
+
+            <div class="card shadow-sm border-0" style="max-width: 600px;">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Locație</label>
+                            {{ form.locatie }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Acțiuni (ține CTRL pentru mai multe)</label>
+                            {{ form.actiune_select }}
+                            <small class="text-muted">Dacă ai ales "Alta", completează mai jos:</small>
+                            {{ form.actiune_custom }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descriere detaliată</label>
+                            {{ form.descriere }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observații</label>
+                            {{ form.observatii }}
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Termen limită (Deadline)</label>
+                                {{ form.deadline }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Atribuit către (mai mulți)</label>
+                                {{ form.atribuit_catre }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'lista_taskuri' %}" class="btn btn-outline-secondary">Anulează</a>
+                            <button type="submit" class="btn btn-success px-4">✔ Salvează și Atribuie</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // 1. Facem câmpul de locație să accepte text nou (tags: true)
+        $('#id_locatie').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            tags: true, 
+            placeholder: 'Alege o locație sau scrie una nouă...'
+        });
+
+        // 2. Restul listelor (angajați, acțiuni) rămân normale
+        $('.form-select').not('#id_locatie').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Caută sau alege o opțiune...'
+        });
+    });
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#id_deadline", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true // Asta e magia care forțează 24h
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

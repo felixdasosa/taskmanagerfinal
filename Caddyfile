@@ -1,0 +1,20 @@
+{
+    # Oprim redirect-urile automate care încearcă să ia portul 80
+    auto_https disable_redirects
+}
+
+https://cc210d3d8ceb.sn.mynetname.net {
+    # Certificatele tale (calea ta verificată)
+    tls "C:/Users/iVMS-Skynet/Desktop/taskmanager/taskmanager/aplicatie_taskuri/caddy_data/certificates/acme-v02.api.letsencrypt.org-directory/cc210d3d8ceb.sn.mynetname.net/cc210d3d8ceb.sn.mynetname.net.crt" "C:/Users/iVMS-Skynet/Desktop/taskmanager/taskmanager/aplicatie_taskuri/caddy_data/certificates/acme-v02.api.letsencrypt.org-directory/cc210d3d8ceb.sn.mynetname.net/cc210d3d8ceb.sn.mynetname.net.key"
+
+    # Fișiere statice
+    handle_path /static/* {
+        root * "C:/Users/iVMS-Skynet/Desktop/taskmanager/taskmanager/aplicatie_taskuri/staticfiles"
+        file_server
+    }
+    
+    # Proxy Django
+    handle {
+        reverse_proxy localhost:8000
+    }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    {% load webpush_notifications %}
+    {% webpush_header %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1d20">
+    <meta name="apple-mobile-web-app-title" content="Task Manager">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #f8f9fa; border-right: 1px solid #dee2e6; }
+        .nav-link { color: #495057; font-weight: 500; padding: 12px 20px; }
+        .nav-link:hover { background-color: #e9ecef; color: #212529; border-radius: 5px; }
+        .logout-btn { color: #dc3545; }
+        .logout-btn:hover { background-color: #ffe6e6; color: #dc3545; }
+    </style>
+</head>
+<body class="bg-light">
+    {% webpush_button with_class="btn btn-outline-success" %}
+    <div class="container-fluid">
+        <div class="row">
+           <div class="col-12 d-md-none d-flex align-items-center bg-white p-3 border-bottom shadow-sm sticky-top">
+    <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#meniuLateral" aria-controls="meniuLateral">
+        <span style="font-size: 1.3rem; line-height: 1;">☰</span>
+    </button>
+    <h5 class="mb-0 fw-bold text-secondary">Task Manager</h5>
+</div>
+
+<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar offcanvas-md offcanvas-start border-end" tabindex="-1" id="meniuLateral" aria-labelledby="meniuLateralLabel" style="min-height: 100vh;">
+    
+    <div class="offcanvas-header d-md-none border-bottom">
+        <h5 class="offcanvas-title fw-bold text-secondary" id="meniuLateralLabel">Panou Control</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#meniuLateral" aria-label="Închide"></button>
+    </div>
+    
+    <div class="offcanvas-body d-flex flex-column p-0 p-md-3">
+        <h5 class="text-center mb-4 mt-3 font-weight-bold text-secondary d-none d-md-block">Panou Control</h5>
+        <ul class="nav flex-column w-100 p-3 p-md-0">
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'dashboard' %}">🏠 Dashboard</a></li>
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_taskuri' %}">📋 Taskuri</a></li>
+            
+            {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'istoric_taskuri' %}">📊 Istoric & Rapoarte</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_reminders' %}">⏰ Remindere</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'vizualizare_audit' %}">📝 Audit Log</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_utilizatori' %}">👥 Echipa Mea</a></li>
+            {% endif %}
+            
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_mesaje' %}">✉️ Mesaje</a></li>
+            <li class="nav-item mt-2"><a class="nav-link text-info fw-bold" href="{% url 'profil' %}">👤 Profilul Meu</a></li>
+        </ul>
+    </div>
+</nav>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 py-4">
+                {% block content %}
+                <h2 class="h3 mb-4 border-bottom pb-2">Salutare, {{ request.user.username }}! 👋</h2>
+                
+                <div class="row mb-5">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 bg-primary text-white p-3 text-center">
+                            <h5 class="card-title">Total Task-uri</h5>
+                            <h2 class="display-4 fw-bold">{{ total }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 bg-warning text-dark p-3 text-center">
+                            <h5 class="card-title">În Desfășurare</h5>
+                            <h2 class="display-4 fw-bold">{{ active }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 bg-success text-white p-3 text-center">
+                            <h5 class="card-title">Finalizate</h5>
+                            <h2 class="display-4 fw-bold">{{ finalizate }}</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <h4 class="h5 mb-3 text-danger font-weight-bold">⚠️ Task-uri întârziate</h4>
+                        <div class="card shadow-sm border-0 border-start border-danger border-4">
+                            <ul class="list-group list-group-flush">
+                                {% for task in taskuri_intarziate %}
+                                    <li class="list-group-item py-3">
+                                        <strong class="text-danger">{{ task.titlu }}</strong><br>
+                                        <small class="text-muted">Responsabil: {% for angajat in task.atribuit_catre.all %}{{ angajat.username }}{% if not forloop.last %}, {% endif %}{% empty %}Neatribuit{% endfor %}</small><br>
+                                        <small class="fw-bold text-danger">Termen: {{ task.deadline|date:"d M Y, H:i" }}</small>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item py-3 text-success fw-bold bg-light text-center">🎉 Nu există task-uri întârziate!</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
+                    <div class="col-md-6 mb-4">
+                        <h4 class="h5 mb-3 text-secondary font-weight-bold">🔔 Activitate Recentă</h4>
+                        <div class="card shadow-sm border-0 border-start border-success border-4">
+                            <ul class="list-group list-group-flush">
+                                {% for notificare in notificari_recente %}
+                                    <li class="list-group-item py-3">
+                                        <strong class="text-dark">✔️ Task finalizat: {{ notificare.titlu }}</strong> la {{ notificare.locatie }}
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item py-3 text-muted bg-light text-center">Nu există activitate recentă.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+    <script>
+    // Setăm timer-ul inițial de 30 de secunde
+    let refreshTimer = setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+
+    // Senzor de mișcare: dacă dai click într-un câmp de text, se anulează refresh-ul
+    document.addEventListener('focusin', function(event) {
+        let element = event.target.tagName;
+        
+        // Verificăm dacă ai dat click pe un input, textarea sau listă
+        if (element === 'INPUT' || element === 'TEXTAREA' || element === 'SELECT') {
+            clearTimeout(refreshTimer);
+            console.log("Auto-refresh anulat pe Dashboard! Se completează un formular.");
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesaje Interne</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1d20">
+
+<meta name="apple-mobile-web-app-title" content="Task Manager">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .sidebar { min-height: 100vh; background-color: #f8f9fa; border-right: 1px solid #dee2e6; }
+        .nav-link-custom { color: #495057; font-weight: 500; padding: 12px 20px; text-decoration: none; display: block; }
+        .nav-link-custom:hover { background-color: #e9ecef; color: #212529; border-radius: 5px; }
+        .logout-btn { color: #dc3545; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        
+      <div class="col-12 d-md-none d-flex align-items-center bg-white p-3 border-bottom shadow-sm sticky-top">
+    <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#meniuLateral" aria-controls="meniuLateral">
+        <span style="font-size: 1.3rem; line-height: 1;">☰</span>
+    </button>
+    <h5 class="mb-0 fw-bold text-secondary">Task Manager</h5>
+</div>
+
+<nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar offcanvas-md offcanvas-start border-end" tabindex="-1" id="meniuLateral" aria-labelledby="meniuLateralLabel" style="min-height: 100vh;">
+    
+    <div class="offcanvas-header d-md-none border-bottom">
+        <h5 class="offcanvas-title fw-bold text-secondary" id="meniuLateralLabel">Panou Control</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#meniuLateral" aria-label="Închide"></button>
+    </div>
+    
+    <div class="offcanvas-body d-flex flex-column p-0 p-md-3">
+        <h5 class="text-center mb-4 mt-3 font-weight-bold text-secondary d-none d-md-block">Panou Control</h5>
+        <ul class="nav flex-column w-100 p-3 p-md-0">
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'dashboard' %}">🏠 Dashboard</a></li>
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_taskuri' %}">📋 Taskuri</a></li>
+            
+            {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'istoric_taskuri' %}">📊 Istoric & Rapoarte</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_reminders' %}">⏰ Remindere</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'vizualizare_audit' %}">📝 Audit Log</a></li>
+                <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_utilizatori' %}">👥 Echipa Mea</a></li>
+            {% endif %}
+            
+            <li class="nav-item mb-1"><a class="nav-link" href="{% url 'lista_mesaje' %}">✉️ Mesaje</a></li>
+            <li class="nav-item mt-2"><a class="nav-link text-info fw-bold" href="{% url 'profil' %}">👤 Profilul Meu</a></li>
+        </ul>
+    </div>
+</nav>
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 py-4">
+            <h2 class="h3 border-bottom pb-3 mb-4">Centru de Comunicare</h2>
+
+            <ul class="nav nav-tabs mb-4" id="mesajeTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-tab nav-link active fw-bold" id="primite-tab" data-bs-toggle="tab" data-bs-target="#primite" type="button" role="tab">📥 Primite (Inbox)</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-tab nav-link fw-bold" id="trimise-tab" data-bs-toggle="tab" data-bs-target="#trimise" type="button" role="tab">📤 Trimise</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-tab nav-link fw-bold text-success" id="nou-tab" data-bs-toggle="tab" data-bs-target="#nou" type="button" role="tab">✍ Trimite Mesaj Nou</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="mesajeTabsContent">
+                
+                <div class="tab-pane fade show active" id="primite" role="tabpanel">
+                    <div class="list-group shadow-sm">
+                        {% for m in mesaje_primite %}
+                            <div class="list-group-item p-3 border-start border-primary border-4 mb-2 bg-white rounded shadow-sm">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong class="text-primary">De la: {{ m.expeditor.username }}</strong>
+                                    <small class="text-muted">{{ m.data_trimitere|date:"d M Y, H:i" }}</small>
+                                </div>
+                                <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ m.continut }}</p>
+                            </div>
+                        {% empty %}
+                            <div class="alert alert-light border text-center py-4 text-muted">Nu ai primit niciun mesaj momentan.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="trimise" role="tabpanel">
+                    <div class="list-group shadow-sm">
+                        {% for m in mesaje_trimise %}
+                            <div class="list-group-item p-3 border-start border-secondary border-4 mb-2 bg-white rounded shadow-sm">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong class="text-secondary">Către: {{ m.destinatar.username }}</strong>
+                                    <small class="text-muted">{{ m.data_trimitere|date:"d M Y, H:i" }}</small>
+                                </div>
+                                <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ m.continut }}</p>
+                            </div>
+                        {% empty %}
+                            <div class="alert alert-light border text-center py-4 text-muted">Nu ai trimis niciun mesaj încă.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="nou" role="tabpanel">
+                    <div class="card shadow-sm border-0" style="max-width: 600px;">
+                        <div class="card-body p-4">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Alege destinatarul</label>
+                                    {{ form.destinatar }}
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Mesaj</label>
+                                    {{ form.continut }}
+                                </div>
+                                <button type="submit" class="btn btn-success w-100 py-2 fw-bold">🚀 Expediază Mesajul</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>
