@@ -108,13 +108,22 @@
                                 
                                 <div class="text-end" style="min-width: 140px;">
                                     {% if task.este_intarziat %}
-                                        <span class="badge bg-danger text-white p-2 rounded mb-2 d-inline-block w-100">⚠️ Întârziat</span>
-                                    {% else %}
-                                        {% if task.status == 'in_asteptare' %} <span class="badge bg-secondary p-2 rounded mb-2 d-inline-block w-100">În așteptare</span>
-                                        {% elif task.status == 'in_lucru' %} <span class="badge bg-primary p-2 rounded mb-2 d-inline-block w-100">În lucru</span>
-                                        {% elif task.status == 'in_pauza' %} <span class="badge bg-secondary p-2 rounded mb-2 d-inline-block w-100">⏸ În pauză</span>
-                                        {% endif %}
-                                    {% endif %}
+    {% if task.status == 'in_lucru' %}
+        <span class="badge bg-danger text-white p-2 rounded mb-2 d-inline-block w-100">⚠️ În lucru - Întârziat</span>
+    {% elif task.status == 'in_pauza' %}
+        <span class="badge bg-danger text-white p-2 rounded mb-2 d-inline-block w-100">⚠️ În pauză - Întârziat</span>
+    {% else %}
+        <span class="badge bg-danger text-white p-2 rounded mb-2 d-inline-block w-100">⚠️ În așteptare - Întârziat</span>
+    {% endif %}
+{% else %}
+    {% if task.status == 'in_asteptare' %} 
+        <span class="badge bg-secondary text-white p-2 rounded mb-2 d-inline-block w-100">În așteptare</span>
+    {% elif task.status == 'in_lucru' %} 
+        <span class="badge bg-primary text-white p-2 rounded mb-2 d-inline-block w-100">În lucru</span>
+    {% elif task.status == 'in_pauza' %} 
+        <span class="badge bg-secondary text-white p-2 rounded mb-2 d-inline-block w-100">⏸ În pauză</span>
+    {% endif %}
+{% endif %}
                                     
                                     {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
                                         <div class="d-flex flex-column gap-1 mt-2 mb-2">
@@ -318,7 +327,6 @@
             let lngInput = form.querySelector('.input_lng');
             let btn = form.querySelector('button[type="submit"]');
 
-            // Inițializăm contorul de încercări dacă nu există
             if (!form.dataset.incercari) {
                 form.dataset.incercari = 0;
             }
@@ -332,47 +340,39 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         function(position) {
-                            // Succes, preluăm coordonatele
                             latInput.value = position.coords.latitude;
                             lngInput.value = position.coords.longitude;
                             form.submit(); 
                         },
                         function(error) {
-                            // Incrementăm numărul de încercări eșuate
                             form.dataset.incercari = parseInt(form.dataset.incercari) + 1;
                             
-                            // DACĂ E LA A 2-a ÎNCERCARE -> Îi dăm drumul fără GPS
                             if (parseInt(form.dataset.incercari) >= 2) {
-                                alert("⚠️ Locația nu s-a putut prelua nici de această dată. Task-ul va începe fără coordonate GPS pentru a nu pierde timp.");
+                                alert("⚠️ Locația nu s-a putut prelua. Task-ul va începe fără coordonate GPS.");
                                 form.submit();
                                 return;
                             }
 
-                            // LA PRIMA ÎNCERCARE -> Îi afișăm mesajul de eroare și cum se rezolvă
                             let mesaj = "";
                             if (error.code === 1) {
-                                mesaj = "⛔ LOCAȚIA ESTE BLOCATĂ DE BROWSER!\n\nRezolvare:\n1. Apasă pe lacătul de sus, de lângă adresa site-ului.\n2. Mergi la 'Permisiuni' sau 'Locație'.\n3. Bifează 'Permite' (Allow).\n4. Dă un refresh la pagină și apasă din nou pe Start.\n\n(Dacă la următoarea încercare tot nu merge, task-ul va porni oricum).";
+                                mesaj = "⛔ PERMISIUNE DE LOCAȚIE BLOCATĂ!\n\n1. Intră în Setările telefonului.\n2. Mergi la Aplicații -> Caută 'Task Manager'.\n3. Permisiuni -> Locație -> Permite.\n4. Apasă din nou pe Start.";
                             } 
                             else if (error.code === 2 || error.code === 3) {
-                                mesaj = "📡 SEMNAL GPS SLAB SAU OPRIT!\n\nRezolvare:\n1. Trage meniul de sus al telefonului și asigură-te că opțiunea 'Locație' (GPS) este pornită.\n2. Ieși afară din clădire sau apropie-te de un geam pentru 10 secunde.\n3. Apasă din nou pe Start.\n\n(Dacă la următoarea încercare tot nu merge, task-ul va porni oricum).";
+                                mesaj = "📡 SEMNAL GPS SLAB (SUBTERAN / HALĂ)!\n\n1. Verifică dacă funcția 'Locație' (GPS) e pornită în meniul de sus al telefonului.\n2. Apropie-te de un geam sau ieși afară.\n3. Apasă din nou pe Start.";
                             } 
                             else {
-                                mesaj = "⚠️ Eroare tehnică GPS: " + error.message;
+                                mesaj = "⚠️ Problemă GPS: " + error.message;
                             }
                             
                             alert(mesaj);
-                            
-                            // Reactivăm butonul pentru a doua încercare
                             btn.innerHTML = "▶ Începe Task";
                             btn.disabled = false;
                         },
-                        { 
-                            enableHighAccuracy: true, 
-                            timeout: 10000, 
-                            maximumAge: 0 
-                        }
+                        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
                     );
                 } else {
+                    // 🔥 AICI ERA GAURA TĂCUTĂ! Acum va urla și aici.
+                    alert("⚠️ EROARE SISTEM: Telefonul respinge total accesul la GPS. Verifică setările generale de locație ale telefonului!");
                     form.submit();
                 }
             }
