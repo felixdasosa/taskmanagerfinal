@@ -1,5 +1,6 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
@@ -41,4 +42,6 @@ urlpatterns = [
     path('reminders/sterge/<int:reminder_id>/', views.sterge_reminder, name='sterge_reminder'),
     path('task/<int:task_id>/adauga-raport/', views.adauga_raport_supervizor, name='adauga_raport_supervizor'),
     path('raport/sterge/<int:raport_id>/', views.sterge_raport, name='sterge_raport'),
+    path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/json'), name='manifest'),
+path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript'), name='sw'),
 ]

@@ -25,16 +25,45 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6zt(g)x3_m46oc7f5h3@cg_p%a-sr+h(1*=aez3@u005!mi-2!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # 1. Permitem accesul de pe orice IP/Domeniu
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['cc210d3d8ceb.sn.mynetname.net', '127.0.0.1', 'localhost', '*']
 
 # Adăugăm IP-ul tău public aici. Punem și varianta cu portul 8000 pentru siguranță.
 CSRF_TRUSTED_ORIGINS = [
     'http://86.120.150.58',
     'http://86.120.150.58:8000', 
 ]
+# --- SISTEM AUTOMAT DE DEBUGGING PENTRU PRODUCȚIE ---
+import os
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'detaliat': {
+            'format': '{levelname} | {asctime} | Modul: {module} | Mesaj: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            # Fișierul va fi creat automat în același folder cu manage.py
+            'filename': os.path.join(BASE_DIR, 'django_erori_sistem.log'),
+            'formatter': 'detaliat',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 
 

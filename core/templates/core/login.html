@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logare - Sistem Management</title>
+    <link rel="manifest" href="{% url 'manifest' %}">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
 <link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -46,6 +47,14 @@
             {% endif %}
         </div>
     </div>
-
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register("{% url 'sw' %}")
+                .then(reg => console.log('PWA Service Worker pornit cu succes!'))
+                .catch(err => console.log('Eroare la pornire PWA:', err));
+        });
+    }
+</script>
 </body>
 </html>
