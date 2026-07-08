@@ -2,19 +2,19 @@
 <html lang="ro">
 <head>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creează Task Nou</title>
     <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
-<link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a1d20">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1d20">
 
-<meta name="apple-mobile-web-app-title" content="Task Manager">
+    <meta name="apple-mobile-web-app-title" content="Task Manager">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .sidebar { min-height: 100vh; background-color: #f8f9fa; border-right: 1px solid #dee2e6; }
@@ -63,10 +63,10 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 py-4">
             <div class="border-bottom pb-2 mb-4">
                 <h2 class="h3">Atribuie un Task Nou</h2>
-                <p class="text-muted">Completează noile detalii de locație și acțiune.</p>
+                <p class="text-muted">Completează noile detalii de locație, acțiune și control.</p>
             </div>
 
-            <div class="card shadow-sm border-0" style="max-width: 600px;">
+            <div class="card shadow-sm border-0" style="max-width: 700px;">
                 <div class="card-body p-4">
                     <form method="POST">
                         {% csrf_token %}
@@ -79,8 +79,8 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Acțiuni (ține CTRL pentru mai multe)</label>
                             {{ form.actiune_select }}
-                            <small class="text-muted">Dacă ai ales "Alta", completează mai jos:</small>
-                            {{ form.actiune_custom }}
+                            <small class="text-muted d-block mt-1">Dacă ai ales "Alta", completează mai jos:</small>
+                            <div class="mt-1">{{ form.actiune_custom }}</div>
                         </div>
                         
                         <div class="mb-3">
@@ -88,25 +88,29 @@
                             {{ form.descriere }}
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label fw-bold">Observații</label>
                             {{ form.observatii }}
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Termen limită (Deadline)</label>
-                                {{ form.deadline }}
+                        <div class="row mb-4 p-3 bg-light rounded border">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold text-primary">Atribuit către (Băieții de pe teren)</label>
+                                {{ form.atribuit_catre }}
+                            </div>
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label fw-bold text-info">Supervizor / Control (Opțional)</label>
+                                {{ form.supervizor }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Atribuit către (mai mulți)</label>
-                                {{ form.atribuit_catre }}
+                                <label class="form-label fw-bold text-danger">Termen limită (Deadline)</label>
+                                {{ form.deadline }}
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'lista_taskuri' %}" class="btn btn-outline-secondary">Anulează</a>
-                            <button type="submit" class="btn btn-success px-4">✔ Salvează și Atribuie</button>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'lista_taskuri' %}" class="btn btn-outline-secondary px-4">Anulează</a>
+                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">✔ Salvează și Atribuie</button>
                         </div>
                     </form>
                 </div>
@@ -114,11 +118,12 @@
         </main>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        // 1. Facem câmpul de locație să accepte text nou (tags: true)
+        // 1. Locația - cu funcția de adăugare manuală a unei locații noi
         $('#id_locatie').select2({
             theme: 'bootstrap-5',
             width: '100%',
@@ -126,8 +131,8 @@
             placeholder: 'Alege o locație sau scrie una nouă...'
         });
 
-        // 2. Restul listelor (angajați, acțiuni) rămân normale
-        $('.form-select').not('#id_locatie').select2({
+        // 2. Țintim specific ID-urile celorlalte dropdown-uri ca să nu se mai blocheze între ele
+        $('#id_actiune_select, #id_atribuit_catre, #id_supervizor').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: 'Caută sau alege o opțiune...'
@@ -142,7 +147,7 @@
         flatpickr("#id_deadline", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
-            time_24hr: true // Asta e magia care forțează 24h
+            time_24hr: true 
         });
     });
 </script>

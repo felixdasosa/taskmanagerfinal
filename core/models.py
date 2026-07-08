@@ -6,6 +6,7 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('superadmin', 'Superadmin'),
         ('manager', 'Manager'),
+        ('supervizor', 'Supervizor / Control'), # 🔥 Am adăugat rolul aici
         ('gestionar', 'Gestionar'),
         ('sofer', 'Sofer'),
         ('tehnician', 'Tehnician'),
@@ -42,6 +43,14 @@ class Task(models.Model):
     # --- RELAȚII ---
     creat_de = models.ForeignKey(User, on_delete=models.CASCADE, related_name='taskuri_create')
     atribuit_catre = models.ManyToManyField(User, related_name='taskuri_primite')
+    supervizor = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='taskuri_de_supervizat', 
+        verbose_name="Responsabil Locație / Supervizor"
+    )
     
     # --- TIMP, LOCAȚIE ȘI PAUZE ---
     data_crearii = models.DateTimeField(auto_now_add=True)
@@ -145,3 +154,59 @@ class Reminder(models.Model):
 
     def __str__(self):
         return f"{self.titlu} - {self.user.username}"
+
+# --- MODEL NOU: RAPORT SUPERVIZOR / INTERVENȚIE ---
+class RaportSupervizor(models.Model):
+    STARE_LUCRARE_CHOICES = [
+        ('in_grafic', '🟢 În Grafic / Fără Probleme'),
+        ('intarzieri', '🟡 Întârzieri / Probleme Minore'),
+        ('critic', '🔴 Critic / Necesită Intervenție Urgentă'),
+    ]
+
+    task = models.ForeignKey(
+        Task, 
+        on_delete=models.CASCADE, 
+        related_name='rapoarte_control', 
+        verbose_name="Lucrare / Locație"
+    )
+    supervizor = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='rapoarte_create', 
+        verbose_name="Responsabil care raportează"
+    )
+    angajat_evaluat = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='evaluari_primite', 
+        verbose_name="Angajat Verificat (Opțional)"
+    )
+    
+    data_raportului = models.DateTimeField(auto_now_add=True, verbose_name="Data și Ora Controlului")
+    
+    ce_s_a_facut = models.TextField(
+        verbose_name="Ce a realizat angajatul / Lucrări efectuate", 
+        help_text="Descrie detaliat ce s-a montat, configurat sau reparat pe locație."
+    )
+    ce_nu_s_a_facut = models.TextField(
+        blank=True, 
+        null=True, 
+        verbose_name="Ce NU s-a realizat / Probleme întâmpinate", 
+        help_text="Menționează ce a rămas neterminat, lipsă materiale sau greșeli."
+    )
+    stare_lucrare = models.CharField(
+        max_length=30, 
+        choices=STARE_LUCRARE_CHOICES, 
+        default='in_grafic',
+        verbose_name="Starea Lucrării"
+    )
+
+    class Meta:
+        verbose_name = "Raport Supervizor / Intervenție"
+        verbose_name_plural = "Rapoarte Supervizori / Intervenții"
+        ordering = ['-data_raportului']
+
+    def __str__(self):
+        return f"Raport {self.supervizor.username} - {self.task.titlu} ({self.data_raportului.strftime('%d.%m.%Y %H:%M')})"

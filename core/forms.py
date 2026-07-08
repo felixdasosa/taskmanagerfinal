@@ -3,7 +3,7 @@ import os
 import openpyxl
 import re
 from django import forms
-from .models import Task, User, Mesaj, Reminder
+from .models import Task, User, Mesaj, Reminder, RaportSupervizor
 
 # --- LISTE AUXILIARE ---
 ACTIUNI_LISTA = [
@@ -93,10 +93,17 @@ class TrimiteMesajForm(forms.ModelForm):
 
 class AdaugaTaskForm(forms.ModelForm):
     atribuit_catre = forms.ModelMultipleChoiceField(
-        # AICI ESTE MODIFICAREA: Aducem toate rolurile operative
         queryset=User.objects.filter(role__in=['tehnician', 'sofer', 'gestionar', 'inginer']),
         widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}),
         label="Angajați (ține CTRL pentru mai mulți)"
+    )
+    
+    # 🔥 AM ADĂUGAT CÂMPUL SUPERVIZOR AICI 🔥
+    supervizor = forms.ModelChoiceField(
+        queryset=User.objects.filter(role__in=['supervizor', 'manager', 'superadmin']),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Supervizor / Control (Opțional)",
+        required=False
     )
     
     locatie = forms.CharField(
@@ -119,7 +126,8 @@ class AdaugaTaskForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        fields = ['atribuit_catre', 'locatie', 'deadline', 'descriere', 'observatii']
+        # 🔥 AM ADĂUGAT 'supervizor' ÎN LISTA DE CÂMPURI 🔥
+        fields = ['atribuit_catre', 'supervizor', 'locatie', 'deadline', 'descriere', 'observatii']
         widgets = {
             'deadline': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}, format='%Y-%m-%dT%H:%M'),
             'descriere': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Scrie aici detaliile...'}),
@@ -181,4 +189,15 @@ class ReminderForm(forms.ModelForm):
             'titlu': forms.TextInput(attrs={'class': 'form-control'}),
             'detalii': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'data_reminder': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }
+    
+class RaportSupervizorForm(forms.ModelForm):
+    class Meta:
+        model = RaportSupervizor
+        fields = ['angajat_evaluat', 'stare_lucrare', 'ce_s_a_facut', 'ce_nu_s_a_facut']
+        widgets = {
+            'angajat_evaluat': forms.Select(attrs={'class': 'form-select'}),
+            'stare_lucrare': forms.Select(attrs={'class': 'form-select'}),
+            'ce_s_a_facut': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descrie ce s-a lucrat...'}),
+            'ce_nu_s_a_facut': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descrie problemele sau ce a rămas nefăcut...'}),
         }

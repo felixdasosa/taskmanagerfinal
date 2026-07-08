@@ -1,9 +1,12 @@
+from multiprocessing import context
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from requests import request
 from .models import Task
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -21,6 +24,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Reminder # Asigură-te că ai importat modelul
 from .forms import ReminderForm # Va trebui să creezi acest form (vezi mai jos)
+from .models import RaportSupervizor, Task
+from .forms import RaportSupervizorForm
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
 
 import random
 import string
@@ -632,3 +639,42 @@ def sterge_reminder(request, reminder_id):
     reminder = get_object_or_404(Reminder, id=reminder_id, user=request.user)
     reminder.delete()
     return redirect('lista_reminders')
+def adauga_raport_supervizor(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Securitate: Verificăm dacă utilizatorul are voie să dea raport
+    # (Opțional, permiți doar supervizorului alocat sau managerilor)
+    if request.user != task.supervizor and request.user.role not in ['superadmin', 'manager']:
+        messages.error(request, "Nu ai permisiunea să adaugi un raport pentru această lucrare.")
+        return redirect('lista_taskuri')
+
+    if request.method == 'POST':
+        form = RaportSupervizorForm(request.POST)
+        if form.is_valid():
+            raport = form.save(commit=False)
+            raport.task = task
+            raport.supervizor = request.user
+            raport.save()
+            messages.success(request, "Raportul de intervenție a fost salvat cu succes!")
+            return redirect('lista_taskuri') # Sau redirect către pagina de detalii a task-ului
+    else:
+        form = RaportSupervizorForm()
+        
+    context = {
+        'form': form,
+        'task': task
+    }
+    return render(request, 'core/adauga_raport.html', context)
+def sterge_raport(request, raport_id):
+    # Căutăm raportul în baza de date
+    raport = get_object_or_404(RaportSupervizor, id=raport_id)
+    
+    # Măsură de securitate: Doar cine a creat raportul, superadminul sau managerul pot șterge
+    if request.user == raport.supervizor or request.user.role in ['superadmin', 'manager']:
+        raport.delete()
+        messages.success(request, "Raportul a fost șters cu succes!")
+    else:
+        messages.error(request, "Nu ai permisiunea de a șterge acest raport.")
+        
+    # Ne întoarcem pe pagina de unde am dat click (lista de taskuri)
+    return redirect(request.META.get('HTTP_REFERER', 'lista_taskuri'))

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaugă Raport Intervenție</title>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/c15115Nm/taskmanager-icon-1.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 border-top border-primary border-4">
+                    <div class="card-body p-4">
+                        <h3 class="card-title text-primary mb-3">📝 Raport Intervenție / Control</h3>
+                        <h5 class="text-dark">Lucrare: {{ task.titlu }}</h5>
+                        <p class="text-muted small mb-1">Locație: {{ task.locatie }}</p>
+                        
+                        <hr>
+                        
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Starea Lucrării:</label>
+                                {{ form.stare_lucrare }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Angajat Evaluat / Verificat (Opțional):</label>
+                                {{ form.angajat_evaluat }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Ce a realizat angajatul / Ce s-a făcut:</label>
+                                {{ form.ce_s_a_facut }}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary">Ce NU s-a realizat / Probleme întâmpinate:</label>
+                                {{ form.ce_nu_s_a_facut }}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'lista_taskuri' %}" class="btn btn-outline-secondary">← Înapoi</a>
+                                <button type="submit" class="btn btn-primary px-5 fw-bold">Salvează Raportul</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

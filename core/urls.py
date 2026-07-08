@@ -39,4 +39,6 @@ urlpatterns = [
     # Reminders (Noile rute)
     path('reminders/', views.lista_reminders, name='lista_reminders'),
     path('reminders/sterge/<int:reminder_id>/', views.sterge_reminder, name='sterge_reminder'),
+    path('task/<int:task_id>/adauga-raport/', views.adauga_raport_supervizor, name='adauga_raport_supervizor'),
+    path('raport/sterge/<int:raport_id>/', views.sterge_raport, name='sterge_raport'),
 ]

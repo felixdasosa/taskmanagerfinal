@@ -33,7 +33,6 @@
 </div>
 
 <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar offcanvas-md offcanvas-start border-end" tabindex="-1" id="meniuLateral" aria-labelledby="meniuLateralLabel" style="min-height: 100vh;">
-    
     <div class="offcanvas-header d-md-none border-bottom">
         <h5 class="offcanvas-title fw-bold text-secondary" id="meniuLateralLabel">Panou Control</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#meniuLateral" aria-label="Închide"></button>
@@ -68,7 +67,7 @@
             
             <form method="GET" class="mb-4">
                 <div class="input-group shadow-sm">
-                    <input type="text" name="q" value="{{ query }}" class="form-control form-control-lg border-primary" placeholder="🔍 Caută un task după titlu sau detalii...">
+                    <input type="text" name="q" value="{{ query }}" class="form-control form-control-lg border-primary" placeholder="🔍 Caută un task...">
                     <button class="btn btn-primary px-4" type="submit">Caută</button>
                     {% if query %}
                         <a href="{% url 'lista_taskuri' %}" class="btn btn-danger px-3" title="Șterge filtrul">✖ Reset</a>
@@ -82,69 +81,105 @@
                     {% for task in taskuri_active %}
                         <li class="list-group-item py-3">
                             <div class="d-flex justify-content-between align-items-start w-100">
-                                
                                 <div class="pe-2">
                                     <strong class="d-block text-dark h5 mb-2">{{ task.titlu }}</strong>
-                                    
                                     {% if task.descriere %}
                                         <p class="text-secondary small mb-1"><strong>📝 Descriere:</strong> {{ task.descriere }}</p>
                                     {% endif %}
-                                    
                                     {% if task.actiune %}
                                         <p class="text-primary small mb-1"><strong>🛠️ Acțiuni necesare:</strong> {{ task.actiune }}</p>
-                                    {% endif %}
-                                    
-                                    {% if task.observatii %}
-                                        <p class="text-warning text-dark small mb-1"><strong>⚠️ Observații:</strong> {{ task.observatii }}</p>
                                     {% endif %}
 
                                     <div class="mt-2 border-top pt-2">
                                         <small class="text-muted d-block">Responsabil: <b>
                                             {% for angajat in task.atribuit_catre.all %}
                                                 {{ angajat.username }}{% if not forloop.last %}, {% endif %}
-                                            {% empty %}
-                                                Fără responsabil alocat
-                                            {% endfor %}
+                                            {% empty %} Fără responsabil alocat {% endfor %}
                                         </b></small>
                                         <small class="text-muted">Termen: {{ task.deadline|date:"d M Y, H:i" }}</small>
                                         <div class="mt-2">
-    {% if task.status != 'in_asteptare' %}
-        {% if task.latitudine_inceput and task.longitudine_inceput %}
-            <a href="{{ task.link_google_maps }}" target="_blank" class="btn btn-sm btn-outline-success" style="font-size: 12px; padding: 2px 8px;">
-                📍 Vezi locația de început
-            </a>
-        {% else %}
-            <button class="btn btn-sm btn-outline-danger" style="font-size: 12px; padding: 2px 8px;" disabled>
-                ⚠️ Eroare localizare
-            </button>
-        {% endif %}
-    {% endif %}
-</div>
+                                            {% if task.status != 'in_asteptare' and task.latitudine_inceput %}
+                                                <a href="{{ task.link_google_maps }}" target="_blank" class="btn btn-sm btn-outline-success" style="font-size: 12px; padding: 2px 8px;">📍 Vezi locația</a>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="text-end" style="min-width: 90px;">
+                                <div class="text-end" style="min-width: 140px;">
                                     {% if task.este_intarziat %}
                                         <span class="badge bg-danger text-white p-2 rounded mb-2 d-inline-block w-100">⚠️ Întârziat</span>
                                     {% else %}
-                                        {% if task.status == 'in_asteptare' %}
-                                            <span class="badge bg-secondary p-2 rounded mb-2 d-inline-block w-100">În așteptare</span>
-                                        {% elif task.status == 'in_lucru' %}
-                                            <span class="badge bg-primary p-2 rounded mb-2 d-inline-block w-100">În lucru</span>
-                                        {% elif task.status == 'in_pauza' %}
-                                            <span class="badge bg-secondary p-2 rounded mb-2 d-inline-block w-100">⏸ În pauză</span>
+                                        {% if task.status == 'in_asteptare' %} <span class="badge bg-secondary p-2 rounded mb-2 d-inline-block w-100">În așteptare</span>
+                                        {% elif task.status == 'in_lucru' %} <span class="badge bg-primary p-2 rounded mb-2 d-inline-block w-100">În lucru</span>
+                                        {% elif task.status == 'in_pauza' %} <span class="badge bg-secondary p-2 rounded mb-2 d-inline-block w-100">⏸ În pauză</span>
                                         {% endif %}
                                     {% endif %}
                                     
                                     {% if request.user.role == 'superadmin' or request.user.role == 'manager' %}
-                                        <div class="d-flex flex-column gap-1 mt-2">
+                                        <div class="d-flex flex-column gap-1 mt-2 mb-2">
                                             <a href="{% url 'editeaza_task' task.id %}" class="btn btn-sm btn-outline-primary">✏️ Editează</a>
-                                            <a href="{% url 'sterge_task' task.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ești sigur că vrei să ștergi acest task definitiv?');">🗑️ Șterge</a>
+                                            <a href="{% url 'sterge_task' task.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ești sigur că vrei să ștergi?');">🗑️ Șterge</a>
                                         </div>
+                                    {% endif %}
+
+                                    {% if request.user == task.supervizor or request.user.role == 'superadmin' or request.user.role == 'manager' or request.user.role == 'supervizor' %}
+                                        {% if task.rapoarte_control.all %}
+                                            <div class="d-flex gap-1 mt-1">
+                                                <button class="btn btn-sm btn-info text-white w-75 fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#rapoarte-{{ task.id }}">
+                                                    👀 Vezi Rapoarte
+                                                </button>
+                                                <a href="{% url 'adauga_raport_supervizor' task.id %}" class="btn btn-sm btn-outline-info w-25" title="Mai adaugă un raport">➕</a>
+                                            </div>
+                                        {% else %}
+                                            <a href="{% url 'adauga_raport_supervizor' task.id %}" class="btn btn-sm btn-outline-info mt-1 w-100">📝 Adaugă Raport</a>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
                             
+                            {% if task.rapoarte_control.all %}
+                            <div class="collapse mt-3 border-top pt-3 w-100" id="rapoarte-{{ task.id }}">
+                                <h6 class="text-secondary fw-bold mb-2 small">📋 Istoric Controale / Rapoarte ({{ task.rapoarte_control.count }}):</h6>
+                                <div class="list-group list-group-flush border rounded shadow-sm">
+                                    {% for raport in task.rapoarte_control.all %}
+                                        <div class="list-group-item p-3 small border-start border-4 
+                                            {% if raport.stare_lucrare == 'in_grafic' %}border-success
+                                            {% elif raport.stare_lucrare == 'intarzieri' %}border-warning
+                                            {% else %}border-danger{% endif %}">
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+    <strong>👤 {{ raport.supervizor.get_full_name|default:raport.supervizor.username }}</strong>
+    <div>
+        <span class="badge bg-light text-secondary border me-2">{{ raport.data_raportului|date:"d.m.Y H:i" }}</span>
+        
+        <!-- Butonul de ștergere raport -->
+        {% if request.user == raport.supervizor or request.user.role == 'superadmin' or request.user.role == 'manager' %}
+            <a href="{% url 'sterge_raport' raport.id %}" class="text-danger text-decoration-none" title="Șterge acest raport" onclick="return confirm('Ești sigur că vrei să ștergi definitiv acest raport?');">🗑️</a>
+        {% endif %}
+    </div>
+</div>
+                                            
+                                            <span class="badge 
+                                                {% if raport.stare_lucrare == 'in_grafic' %}bg-success
+                                                {% elif raport.stare_lucrare == 'intarzieri' %}bg-warning text-dark
+                                                {% else %}bg-danger{% endif %} mb-2">
+                                                {{ raport.get_stare_lucrare_display }}
+                                            </span>
+                                            
+                                            <div class="bg-light p-2 rounded text-dark border">
+                                                <strong class="text-success">✅ S-a făcut:</strong> {{ raport.ce_s_a_facut }}
+                                            </div>
+                                            {% if raport.ce_nu_s_a_facut %}
+                                                <div class="mt-2 p-2 rounded border" style="background-color: #fff3cd; color: #856404;">
+                                                    <strong class="text-danger">⚠️ Probleme:</strong> {{ raport.ce_nu_s_a_facut }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
                             {% if request.user in task.atribuit_catre.all %}
                                 <div class="mt-3 pt-3 border-top w-100">
                                     {% if task.status == 'in_asteptare' %}
@@ -156,34 +191,25 @@
                                         </form>
                                     {% elif task.status == 'in_lucru' %}
                                         <div class="d-flex gap-2">
-                                            <a href="{% url 'pauza_task' task.id %}" class="btn btn-secondary w-50 py-2 fw-bold shadow-sm text-center">
-                                                ⏸ Pauză
-                                            </a>
-                                            <a href="{% url 'finalizeaza_task' task.id %}" class="btn btn-success w-50 py-2 fw-bold shadow-sm text-center">
-                                                ✔️ Finalizează
-                                            </a>
+                                            <a href="{% url 'pauza_task' task.id %}" class="btn btn-secondary w-50 py-2 fw-bold shadow-sm">⏸ Pauză</a>
+                                            <a href="{% url 'finalizeaza_task' task.id %}" class="btn btn-success w-50 py-2 fw-bold shadow-sm">✔️ Finalizează</a>
                                         </div>
                                     {% elif task.status == 'in_pauza' %}
                                         <div class="d-flex gap-2">
-                                            <a href="{% url 'relua_task' task.id %}" class="btn btn-primary w-50 py-2 fw-bold shadow-sm text-center">
-                                                ▶ Reia Task
-                                            </a>
-                                            <a href="{% url 'finalizeaza_task' task.id %}" class="btn btn-success w-50 py-2 fw-bold shadow-sm text-center">
-                                                ✔️ Finalizează
-                                            </a>
+                                            <a href="{% url 'relua_task' task.id %}" class="btn btn-primary w-50 py-2 fw-bold shadow-sm">▶ Reia Task</a>
+                                            <a href="{% url 'finalizeaza_task' task.id %}" class="btn btn-success w-50 py-2 fw-bold shadow-sm">✔️ Finalizează</a>
                                         </div>
                                     {% endif %}
                                 </div>
                             {% endif %}
                         </li>
                     {% empty %}
-                        <li class="list-group-item py-4 text-center text-muted">
-                            {% if query %} Nu s-a găsit niciun task care să corespundă căutării. {% else %} Super! Nu ai niciun task activ momentan. {% endif %}
-                        </li>
+                        <li class="list-group-item py-4 text-center text-muted">Nu ai niciun task activ momentan.</li>
                     {% endfor %}
                 </ul>
             </div>
 
+            <!-- TASKURI FINALIZATE -->
             <button class="btn btn-outline-secondary mb-3 w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#istoricFinalizate">
                 ▼ Afișează Task-urile Finalizate ({{ taskuri_finalizate|length }}) ▼
             </button>
@@ -192,28 +218,20 @@
                 <div class="card shadow-sm border-0 bg-light">
                     <ul class="list-group list-group-flush opacity-75">
                         {% for task in taskuri_finalizate %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-light">
-                                <div>
+                            <li class="list-group-item d-flex justify-content-between align-items-start py-3 bg-light">
+                                <div class="w-100 pe-3">
                                     <strong class="d-block text-secondary h5 mb-1"><del>{{ task.titlu }}</del></strong>
-                                    
-                                    {% if task.actiune %}
-                                        <p class="text-muted small mb-1">🛠️ Acțiuni: {{ task.actiune }}</p>
-                                    {% endif %}
-                                    
+                                    {% if task.actiune %} <p class="text-muted small mb-1">🛠️ Acțiuni: {{ task.actiune }}</p> {% endif %}
                                     <small class="text-muted d-block mt-1">Finalizat de: <b>
-                                        {% for angajat in task.atribuit_catre.all %}
-                                            {{ angajat.username }}{% if not forloop.last %}, {% endif %}
-                                        {% empty %}
-                                            Echipă necunoscută
-                                        {% endfor %}
+                                        {% for angajat in task.atribuit_catre.all %} {{ angajat.username }}{% if not forloop.last %}, {% endif %} {% endfor %}
                                     </b></small>
                                     <div class="mt-2 text-success" style="font-size: 0.85em;">
-    🟢 Început: {{ task.data_inceperii|date:"d M, H:i" }} <br>
-    🔴 Gata: {{ task.data_finalizarii|date:"d M, H:i" }}
-</div>
-<div class="mt-1 text-primary" style="font-size: 0.9em; font-weight: bold;">
-    ⏱️ Timp lucrat efectiv: {{ task.timp_lucrat_formatat }}
-</div>
+                                        🟢 Început: {{ task.data_inceperii|date:"d M, H:i" }} <br>
+                                        🔴 Gata: {{ task.data_finalizarii|date:"d M, H:i" }}
+                                    </div>
+                                    <div class="mt-1 text-primary" style="font-size: 0.9em; font-weight: bold;">
+                                        ⏱️ Timp lucrat: {{ task.timp_lucrat_formatat }}
+                                    </div>
 
                                     {% if task.link_google_maps %}
                                         <div class="mt-2">
@@ -222,101 +240,96 @@
                                             </a>
                                         </div>
                                     {% endif %}
+
+                                    <!-- 🔥 AICI AM CORECTAT: BUTOANELE DE RAPORT APAR ȘI LA FINALIZATE 🔥 -->
+                                    <div class="mt-3">
+                                        {% if request.user == task.supervizor or request.user.role == 'superadmin' or request.user.role == 'manager' or request.user.role == 'supervizor' %}
+                                            {% if task.rapoarte_control.all %}
+                                                <div class="d-flex gap-1 mt-1" style="max-width: 300px;">
+                                                    <button class="btn btn-sm btn-info text-white w-75 fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#rapoarte-fin-{{ task.id }}">
+                                                        👀 Vezi Rapoarte ({{ task.rapoarte_control.count }})
+                                                    </button>
+                                                    <a href="{% url 'adauga_raport_supervizor' task.id %}" class="btn btn-sm btn-outline-info w-25" title="Mai adaugă un raport de recepție">➕</a>
+                                                </div>
+                                            {% else %}
+                                                <a href="{% url 'adauga_raport_supervizor' task.id %}" class="btn btn-sm btn-outline-info mt-1" style="max-width: 300px;">📝 Adaugă Raport Recepție</a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- ISTORICUL ASCUNS PENTRU FINALIZATE -->
+                                    {% if task.rapoarte_control.all %}
+                                    <div class="collapse mt-3" id="rapoarte-fin-{{ task.id }}">
+                                        <div class="list-group list-group-flush border bg-white rounded shadow-sm">
+                                            {% for raport in task.rapoarte_control.all %}
+                                                <div class="list-group-item p-3 small border-start border-4 
+                                                    {% if raport.stare_lucrare == 'in_grafic' %}border-success
+                                                    {% elif raport.stare_lucrare == 'intarzieri' %}border-warning
+                                                    {% else %}border-danger{% endif %}">
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+    <strong>👤 {{ raport.supervizor.get_full_name|default:raport.supervizor.username }}</strong>
+    <div>
+        <span class="badge bg-light text-secondary border me-2">{{ raport.data_raportului|date:"d.m.Y H:i" }}</span>
+        
+        <!-- Butonul de ștergere raport -->
+        {% if request.user == raport.supervizor or request.user.role == 'superadmin' or request.user.role == 'manager' %}
+            <a href="{% url 'sterge_raport' raport.id %}" class="text-danger text-decoration-none" title="Șterge acest raport" onclick="return confirm('Ești sigur că vrei să ștergi definitiv acest raport?');">🗑️</a>
+        {% endif %}
+    </div>
+</div>
+                                                    
+                                                    <span class="badge 
+                                                        {% if raport.stare_lucrare == 'in_grafic' %}bg-success
+                                                        {% elif raport.stare_lucrare == 'intarzieri' %}bg-warning text-dark
+                                                        {% else %}bg-danger{% endif %} mb-2">
+                                                        {{ raport.get_stare_lucrare_display }}
+                                                    </span>
+                                                    
+                                                    <div class="bg-light p-2 rounded text-dark border">
+                                                        <strong class="text-success">✅ S-a făcut:</strong> {{ raport.ce_s_a_facut }}
+                                                    </div>
+                                                    {% if raport.ce_nu_s_a_facut %}
+                                                        <div class="mt-2 p-2 rounded border" style="background-color: #fff3cd; color: #856404;">
+                                                            <strong class="text-danger">⚠️ Probleme:</strong> {{ raport.ce_nu_s_a_facut }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                <span class="badge bg-success px-3 py-2">Finalizat</span>
+                                <div class="text-end" style="min-width: 90px;">
+                                    <span class="badge bg-success px-3 py-2">Finalizat</span>
+                                </div>
                             </li>
-                        {% empty %}
-                            <li class="list-group-item py-4 text-center text-muted bg-light">Nu există task-uri finalizate.</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
-
         </main>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     document.addEventListener('submit', function(event) {
-        // Verificăm dacă formularul trimis este unul de tip "GPS"
         if (event.target && event.target.classList.contains('form-gps')) {
             let form = event.target;
             let latInput = form.querySelector('.input_lat');
             let lngInput = form.querySelector('.input_lng');
-            let btn = form.querySelector('button[type="submit"]');
-
-            // Dacă coordonatele sunt goale, blocăm temporar trimiterea și cerem GPS-ul
             if (!latInput.value || !lngInput.value) {
                 event.preventDefault(); 
-                
-                // Arătăm că se încarcă
-                btn.innerHTML = "⏳ Se preia locația...";
-                btn.disabled = true;
-                
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            // Succes: am prins coordonatele
-                            latInput.value = position.coords.latitude;
-                            lngInput.value = position.coords.longitude;
-                            form.submit(); 
-                        },
-                        function(error) {
-                            // Eroare sau timeout: mergem mai departe fără să blocăm omul
-                            console.warn("Nu s-a putut lua locația: ", error.message);
-                            form.submit(); 
-                        },
-                        // SETĂRILE OPTIMIZATE PENTRU TEREN:
-                        { 
-                            enableHighAccuracy: true, // Folosește modulul GPS, nu doar rețeaua
-                            timeout: 10000,           // Așteaptă până la 10 secunde dacă semnalul e slab
-                            maximumAge: 30000         // Acceptă o locație "cache-uită" de până la 30 de secunde vechime (foarte rapid)
-                        }
+                        function(position) { latInput.value = position.coords.latitude; lngInput.value = position.coords.longitude; form.submit(); },
+                        function(error) { form.submit(); },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
                     );
-                } else {
-                    // Dacă browserul e foarte vechi și nu știe GPS, trece peste
-                    form.submit();
-                }
+                } else { form.submit(); }
             }
         }
-    });
-</script>
-
-<script>
-    let intervalRadar;
-    let utilizatorulScrie = false;
-
-    function scaneazaNoutatiSilentios() {
-        if (utilizatorulScrie) return; 
-        
-        fetch(window.location.href)
-            .then(response => response.text())
-            .then(html => {
-                let parser = new DOMParser();
-                let doc = parser.parseFromString(html, 'text/html');
-                
-                let vechiulContinut = document.querySelector('main');
-                let noulContinut = doc.querySelector('main');
-                
-                if (vechiulContinut && noulContinut) {
-                    vechiulContinut.innerHTML = noulContinut.innerHTML;
-                }
-            })
-            .catch(err => console.warn("Radar err:", err));
-    }
-
-    intervalRadar = setInterval(scaneazaNoutatiSilentios, 10000);
-
-    document.addEventListener('focusin', function(event) {
-        let el = event.target.tagName;
-        if (el === 'INPUT' || el === 'TEXTAREA' || el === 'SELECT') utilizatorulScrie = true;
-    });
-
-    document.addEventListener('focusout', function(event) {
-        let el = event.target.tagName;
-        if (el === 'INPUT' || el === 'TEXTAREA' || el === 'SELECT') utilizatorulScrie = false;
     });
 </script>
 </body>
